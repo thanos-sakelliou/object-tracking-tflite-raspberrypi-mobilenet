@@ -39,6 +39,13 @@ def run_detect(vs, model):
             frame, prediction)
 #         capture_manager.overlay_buff = overlay
         cv2.imshow(stream_name, frame)
+        
+        key = cv2.waitKey(1) & 0xFF
+        # if the `q` key is pressed, break from the lop
+        if key == ord("q"):
+            break
+
+        
         if LOGLEVEL <= logging.INFO:
             fps_counter += 1
             if (time.time() - start_time) > 1:
