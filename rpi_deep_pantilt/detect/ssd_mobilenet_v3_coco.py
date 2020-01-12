@@ -22,7 +22,7 @@ class SSDMobileNet_V3_Coco_EdgeTPU_Quant(object):
         self,
         base_url='https://github.com/leigh-johnson/rpi-deep-pantilt/releases/download/v1.0.0/',
         model_name='ssdlite_mobilenet_edgetpu_coco_quant',
-        input_shape=(320, 320),
+        input_shape=(320, 288),
         min_score_thresh=0.50,
         tflite_model_file='model_postprocessed_quantized_128_uint8_edgetpu.tflite'
     ):
@@ -179,7 +179,7 @@ class SSDMobileNet_V3_Small_Coco_PostProcessed(object):
         self,
         base_url='https://github.com/leigh-johnson/rpi-deep-pantilt/releases/download/v1.0.0/',
         model_name='ssd_mobilenet_v3_small_coco_2019_08_14',
-        input_shape=(320, 320),
+        input_shape=(320, 288),
         min_score_thresh=0.6
 
     ):
