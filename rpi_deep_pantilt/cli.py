@@ -8,7 +8,9 @@ import click
 
 import numpy as np
 
-from rpi_deep_pantilt.detect.camera import PiCameraStream
+import cv2
+
+# from rpi_deep_pantilt.detect.camera import PiCameraStream
 from rpi_deep_pantilt.detect.ssd_mobilenet_v3_coco import SSDMobileNet_V3_Small_Coco_PostProcessed, SSDMobileNet_V3_Coco_EdgeTPU_Quant
 from rpi_deep_pantilt.control.manager import pantilt_process_manager
 from rpi_deep_pantilt.control.hardware_test import pantilt_test, camera_test
@@ -19,26 +21,31 @@ def cli():
     pass
 
 
-def run_detect(capture_manager, model):
+def run_detect(vs, model):
     LOGLEVEL = logging.getLogger().getEffectiveLevel()
 
     start_time = time.time()
     fps_counter = 0
-    while not capture_manager.stopped:
-        if capture_manager.frame is not None:
+    stream_name = "Stream object detection"
+    while True:
+        read, frame = vs.read()
+        
+        if frame is None:
+            break
 
-            frame = capture_manager.read()
-            prediction = model.predict(frame)
-            overlay = model.create_overlay(
-                frame, prediction)
-            capture_manager.overlay_buff = overlay
-            if LOGLEVEL <= logging.INFO:
-                fps_counter += 1
-                if (time.time() - start_time) > 1:
-                    fps = fps_counter / (time.time() - start_time)
-                    logging.info(f'FPS: {fps}')
-                    fps_counter = 0
-                    start_time = time.time()
+
+        prediction = model.predict(frame)
+        overlay = model.create_overlay(
+            frame, prediction)
+#         capture_manager.overlay_buff = overlay
+        cv2.imshow(stream_name, frame)
+        if LOGLEVEL <= logging.INFO:
+            fps_counter += 1
+            if (time.time() - start_time) > 1:
+                fps = fps_counter / (time.time() - start_time)
+                logging.info(f'FPS: {fps}')
+                fps_counter = 0
+                start_time = time.time()
 
 
 @cli.command()
@@ -53,13 +60,27 @@ def detect(loglevel, edge_tpu):
     else:
         model = SSDMobileNet_V3_Small_Coco_PostProcessed()
 
-    capture_manager = PiCameraStream(resolution=(320, 320))
-    capture_manager.start()
-    capture_manager.start_overlay()
+#     capture_manager = PiCameraStream(resolution=(320, 320))
+#     capture_manager.start()
+#     capture_manager.start_overlay()
+
+    resolution=[480, 340]
+    framerate=20
+    # Open camera
+    vs = cv2.VideoCapture(0)
+    if not vs.isOpened():
+        print("Cannot open camera")
+        exit()
+
+    # Init resolution
+    resolution = tuple(resolution)
+    vs.set(cv2.CAP_PROP_FRAME_WIDTH, resolution[0])
+    vs.set(cv2.CAP_PROP_FRAME_HEIGHT, resolution[1])
+
     try:
-        run_detect(capture_manager, model)
+        run_detect(vs, model)
     except KeyboardInterrupt:
-        capture_manager.stop()
+        vs.release()
 
 
 @cli.command()
