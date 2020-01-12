@@ -1,113 +1,69 @@
-# Python
-import logging
-
-import picamera
-from picamera.array import PiRGBArray
-from picamera import PiCamera
+from imutils.video import FPS
 import numpy as np
-
-#from concurrent.futures import ThreadPoolExecutor
-from threading import Thread
-
-# from multiprocessing.pool import ThreadPool
-
-
-logging.basicConfig()
-
-# https://github.com/dtreskunov/rpi-sensorium/commit/40c6f3646931bf0735c5fe4579fa89947e96aed7
-
-
-def _monkey_patch_picamera(overlay):
-    original_send_buffer = picamera.mmalobj.MMALPortPool.send_buffer
-
-    def silent_send_buffer(zelf, *args, **kwargs):
-        try:
-            original_send_buffer(zelf, *args, **kwargs)
-        except picamera.exc.PiCameraMMALError as error:
-            # Only silence MMAL_EAGAIN for our target instance.
-            our_target = overlay.renderer.inputs[0].pool == zelf
-            if not our_target or error.status != 14:
-                raise error
-
-    picamera.mmalobj.MMALPortPool.send_buffer = silent_send_buffer
-
+import time
+import cv2
 
 class PiCameraStream(object):
-    """
-      Continuously capture video frames, and optionally render with an overlay
-
-      Arguments
-      resolution - tuple (x, y) size 
-      framerate - int 
-      vflip - reflect capture on x-axis
-      hflip - reflect capture on y-axis
-
-    """
 
     def __init__(self,
-                 resolution=(320, 240),
+                 resolution=[320, 240],
                  framerate=24,
-                 vflip=False,
-                 hflip=False,
-                 rotation=0,
-                 max_workers=2
                  ):
 
-        #self.pool = ThreadPoolExecutor(max_workers=max_workers)
+        # Open camera
+        cap = cv2.VideoCapture(0)
+        if not cap.isOpened():
+        print("Cannot open camera")
+        exit()
+        
+        # Init resolution
+        self.resolution = tuple(resolution)
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, resolution[0])
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, resolution[1])
+        
+        # Init framerate
+        self.framerate = framerate
+        fps = FPS().start()
 
-        self.camera = PiCamera()
-        self.camera.resolution = resolution
-        self.camera.framerate = framerate
-        self.camera.vflip = vflip
-        self.camera.hflip = hflip
-        self.camera.rotation = rotation
-        self.overlay = None
+        # Init stop variable
+        self.stop = False
+        
+        while self.stop == False :
+            
+            # Capture frame-by-frame
+            read, self.frame = cap.read()
+            
+            # Check if the image is read correctly (read is bool)
+            if not read:
+                print("Can't read the image ...")
+                break
 
-        self.data_container = PiRGBArray(self.camera, size=resolution)
-
-        self.stream = self.camera.capture_continuous(
-            self.data_container, format="rgb", use_video_port=True
-        )
-
-        self.overlay_buff = None
-        self.frame = None
-        self.stopped = False
-        logging.info('starting camera preview')
-        self.camera.start_preview()
+            # Display the resulting frame
+            cv2.imshow('frame', self.frame)
+            
+            # Break loop with q
+            if cv2.waitKey(1) == ord('q'):
+                break
+            
+        # When everything done, release the capture
+        cap.release()
+        cv2.destroyAllWindows()
+        
 
     def render_overlay(self):
-        while True:
-            if self.overlay and self.overlay_buff:
-                self.overlay.update(self.overlay_buff)
-            elif not self.overlay and self.overlay_buff:
-                self.overlay = self.camera.add_overlay(
-                    self.overlay_buff, layer=3, size=self.camera.resolution)
-                _monkey_patch_picamera(self.overlay)
+        print("render_overlay not defined")
 
     def start_overlay(self):
-        Thread(target=self.render_overlay, args=()).start()
-        return self
+        print('start_overlay not defined')
 
     def start(self):
-        '''Begin handling frame stream in a separate thread'''
-        Thread(target=self.flush, args=()).start()
         return self
 
     def flush(self):
-        # looping until self.stopped flag is flipped
-        # for now, grab the first frame in buffer, then empty buffer
-        for f in self.stream:
-            self.frame = f.array
-            self.data_container.truncate(0)
-
-            if self.stopped:
-                self.stream.close()
-                self.data_container.close()
-                self.camera.close()
-                return
+        return None
 
     def read(self):
         return self.frame
 
     def stop(self):
-        self.stopped = True
+        self.stop = True
