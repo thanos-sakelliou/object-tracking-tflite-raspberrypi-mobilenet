@@ -99,9 +99,10 @@ class SSDMobileNet_V3_Coco_EdgeTPU_Quant(object):
             max_boxes_to_draw=3
         )
 
-        img = Image.fromarray(image_np)
+#         img = Image.fromarray(image_np)
 
-        return img.tobytes()
+#         return img.tobytes()
+        return image_np
 
     def predict(self, image):
         '''
