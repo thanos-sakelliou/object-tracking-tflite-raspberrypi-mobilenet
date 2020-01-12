@@ -33,7 +33,7 @@ def run_detect(vs, model):
         if frame is None:
             break
 
-
+        frame = cv2.resize(frame, (320, 320))
         prediction = model.predict(frame)
         overlay = model.create_overlay(
             frame, prediction)
@@ -64,7 +64,7 @@ def detect(loglevel, edge_tpu):
 #     capture_manager.start()
 #     capture_manager.start_overlay()
 
-    resolution=[320, 320]
+    resolution=[352, 288]
     framerate=20
     # Open camera
     vs = cv2.VideoCapture(0)
