@@ -38,7 +38,7 @@ def run_detect(vs, model):
         overlay = model.create_overlay(
             frame, prediction)
 #         capture_manager.overlay_buff = overlay
-        cv2.imshow(stream_name, frame)
+        cv2.imshow(stream_name, overlay)
         
         key = cv2.waitKey(1) & 0xFF
         # if the `q` key is pressed, break from the lop
