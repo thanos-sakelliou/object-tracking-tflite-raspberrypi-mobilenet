@@ -64,7 +64,7 @@ def detect(loglevel, edge_tpu):
 #     capture_manager.start()
 #     capture_manager.start_overlay()
 
-    resolution=[320, 240]
+    resolution=[320, 320]
     framerate=20
     # Open camera
     vs = cv2.VideoCapture(0)
