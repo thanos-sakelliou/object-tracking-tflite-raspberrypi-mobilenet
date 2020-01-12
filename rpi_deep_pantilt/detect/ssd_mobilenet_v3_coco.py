@@ -100,10 +100,9 @@ class SSDMobileNet_V3_Coco_EdgeTPU_Quant(object):
         )
 
         img = Image.fromarray(image_np)
-        print("IMAGE", img)
-        print("IMAGEnp", image_np)
+    
 #         return img.tobytes()
-        return img
+        return image_np
 
     def predict(self, image):
         '''
@@ -252,9 +251,10 @@ class SSDMobileNet_V3_Small_Coco_PostProcessed(object):
             max_boxes_to_draw=3
         )
 
-        img = Image.fromarray(image_np)
+#         img = Image.fromarray(image_np)
 
-        return img.tobytes()
+#         return img.tobytes()
+        return image_np
 
     def predict(self, image):
         '''
