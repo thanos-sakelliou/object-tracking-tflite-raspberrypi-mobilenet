@@ -33,7 +33,11 @@ def run_detect(vs, model):
         if frame is None:
             break
 
+        #model requires 320x320 and has [352, 288]
+        required_res = (320, 320)
+               
         #FOR UPSCALE
+#         scale_percent = required_res[0] * 100/ frame.shape[0]
 #         
 #         height = required_res[0]
 #         width = int(frame.shape[1] * scale_percent / 100)
