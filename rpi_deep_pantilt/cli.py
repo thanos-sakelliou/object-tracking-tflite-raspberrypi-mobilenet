@@ -33,8 +33,41 @@ def run_detect(vs, model):
         if frame is None:
             break
 
-        frame = cv2.resize(frame, (320, 320))
-        prediction = model.predict(frame)
+        #FOR UPSCALE
+#         
+#         height = required_res[0]
+#         width = int(frame.shape[1] * scale_percent / 100)
+#         
+#         # resize image
+#         resized_frame = cv2.resize(frame, (width, height), interpolation = cv2.INTER_AREA)
+#        
+#         #crop frame to correct dimensions
+#         cropped_frame = resized_frame[:, 0:required_res[1]]
+
+
+        #DOWNSCALE AND PATCHING
+        scale_percent = required_res[0] * 100/ frame.shape[1]
+        
+        width = required_res[0]
+        height = int(frame.shape[0] * scale_percent / 100)
+        
+        # resize image
+        resized_frame = cv2.resize(frame, (width, height), interpolation = cv2.INTER_AREA)
+       
+        #crop frame to correct dimensions
+        bordersize = required_res[1] - height
+
+        cropped_frame = cv2.copyMakeBorder(
+            resized_frame,
+            top=0,
+            left=0,
+            right=0,
+            bottom=bordersize,
+            borderType=cv2.BORDER_CONSTANT,
+            value=[0, 0, 0]
+        )
+        
+        prediction = model.predict(cropped_frame)
         overlay = model.create_overlay(
             frame, prediction)
 #         capture_manager.overlay_buff = overlay
